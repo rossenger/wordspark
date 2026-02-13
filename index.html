@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WordSpark</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0a14;--sf:#16132a;--sf2:#1e1a38;--ac:#f7b731;--ac2:#e056a0;--ac3:#56c8e0;--tx:#eee8f5;--tx2:#9b93b4;--ok:#4ecdc4;--bad:#ff6b6b}
+body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
+.app{max-width:520px;margin:0 auto;padding:20px 16px 40px;position:relative}
+.glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(224,86,160,.08),rgba(86,200,224,.04) 40%,transparent 70%);pointer-events:none;z-index:0;animation:gp 8s ease-in-out infinite}
+@keyframes gp{0%,100%{opacity:.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.1)}}
+@keyframes fall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bolt{0%,100%{transform:scale(1) rotate(0);filter:brightness(1)}50%{transform:scale(1.2) rotate(8deg);filter:brightness(1.5)}}
+
+.hdr{text-align:center;margin-bottom:28px;z-index:1;position:relative}
+.logo{font-family:'Fraunces',serif;font-weight:900;font-size:2.4rem;letter-spacing:-1px}
+.logo-w{color:var(--ac)}.logo-s{color:var(--ac2)}
+.logo-b{display:inline-block;margin-left:3px;animation:bolt 2s ease-in-out infinite;font-size:1.6rem;vertical-align:middle;color:var(--ac)}
+.sub{font-size:.8rem;color:var(--tx2);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+
+.stats{display:flex;justify-content:center;gap:24px;margin-bottom:24px;z-index:1;position:relative}
+.st{text-align:center}.sv{font-family:'Fraunces',serif;font-weight:700;font-size:1.5rem}
+.sv-a{color:var(--ac)}.sv-b{color:var(--ac2)}.sv-c{color:var(--ac3)}
+.sl{font-size:.7rem;color:var(--tx2);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+
+.prog{margin-bottom:24px;z-index:1;position:relative}
+.prog-top{display:flex;justify-content:space-between;font-size:.75rem;color:var(--tx2);margin-bottom:6px}
+.prog-bar{height:6px;background:var(--sf2);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:3px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+
+.card{background:var(--sf);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:28px 24px;margin-bottom:16px;z-index:1;position:relative;animation:cardIn .4s cubic-bezier(.34,1.56,.64,1)}
+.badge{display:inline-block;font-size:.68rem;text-transform:uppercase;letter-spacing:2px;font-weight:700;padding:5px 12px;border-radius:100px;margin-bottom:16px}
+.badge-learn{color:var(--ac3);background:rgba(86,200,224,.1);border:1px solid rgba(86,200,224,.2)}
+.badge-quiz{color:var(--ac2);background:rgba(224,86,160,.1);border:1px solid rgba(224,86,160,.2)}
+.badge-apply{color:var(--ac);background:rgba(247,183,49,.1);border:1px solid rgba(247,183,49,.2)}
+
+.big-word{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:700;margin-bottom:2px}
+.pos-tag{font-size:.78rem;color:var(--tx2);font-style:italic;margin-bottom:6px}
+.ipa{font-size:.82rem;color:var(--tx2);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.speak-btn{background:none;border:1.5px solid rgba(86,200,224,.3);color:var(--ac3);border-radius:50%;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .2s;flex-shrink:0}
+.speak-btn:hover{background:rgba(86,200,224,.15);transform:scale(1.1)}
+.def-box{font-size:1rem;line-height:1.55;margin:12px 0 16px;padding:14px 16px;background:rgba(247,183,49,.06);border-left:3px solid var(--ac);border-radius:0 10px 10px 0}
+.ex{font-size:.88rem;color:var(--tx2);line-height:1.5;font-style:italic}
+.ex b{color:var(--tx);font-style:normal;font-weight:600}
+
+.prompt{font-size:.95rem;margin-bottom:20px;line-height:1.55}
+.blank{display:inline;background:rgba(247,183,49,.15);color:var(--ac);padding:2px 10px;border-radius:6px;font-weight:600;border-bottom:2px dashed var(--ac)}
+
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{width:100%;padding:14px 18px;background:var(--sf2);border:1.5px solid rgba(255,255,255,.06);border-radius:12px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.9rem;cursor:pointer;text-align:left;transition:all .2s;line-height:1.4;display:flex;align-items:flex-start}
+.opt:hover:not(.locked){border-color:var(--ac);background:rgba(247,183,49,.06);transform:translateX(4px)}
+.opt.locked{cursor:default}
+.opt.correct{border-color:var(--ok);background:rgba(78,205,196,.12);color:var(--ok);animation:pop .4s ease}
+.opt.wrong{border-color:var(--bad);background:rgba(255,107,107,.08);color:var(--bad);opacity:.7}
+.opt.dim{opacity:.35}
+.let{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.06);font-size:.72rem;font-weight:700;margin-right:12px;flex-shrink:0;transition:all .2s}
+.opt.correct .let{background:var(--ok);color:var(--bg)}
+.opt.wrong .let{background:var(--bad);color:var(--bg)}
+
+.fb{margin-top:16px;padding:16px;border-radius:12px;font-size:.88rem;line-height:1.5;animation:fadeUp .3s ease}
+.fb-ok{background:rgba(78,205,196,.08);border:1px solid rgba(78,205,196,.2);color:var(--ok)}
+.fb-bad{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--bad)}
+
+.next-btn{width:100%;padding:16px;margin-top:16px;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;border-radius:12px;color:var(--bg);font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;z-index:1;position:relative}
+.next-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(247,183,49,.25)}
+.gotit{width:100%;padding:16px;margin-top:20px;background:rgba(86,200,224,.12);border:1.5px solid rgba(86,200,224,.3);border-radius:12px;color:var(--ac3);font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s}
+.gotit:hover{background:rgba(86,200,224,.2);transform:translateY(-2px)}
+
+.scramble-letters{font-family:'Fraunces',serif;font-size:2rem;font-weight:700;letter-spacing:6px;color:var(--ac2);text-align:center;margin:16px 0 20px;word-break:break-all}
+.scramble-hint{font-size:.85rem;color:var(--tx2);text-align:center;margin-bottom:16px;line-height:1.4}
+.scramble-row{display:flex;gap:10px}
+.scramble-input{flex:1;padding:14px 16px;background:var(--sf2);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:1rem;outline:none;transition:border-color .2s}
+.scramble-input:focus{border-color:var(--ac)}
+.scramble-input.si-ok{border-color:var(--ok);background:rgba(78,205,196,.08)}
+.scramble-input.si-bad{border-color:var(--bad);background:rgba(255,107,107,.06)}
+.scramble-submit{padding:14px 24px;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;border-radius:12px;color:var(--bg);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s}
+
+.res{text-align:center;z-index:1;position:relative;animation:cardIn .5s cubic-bezier(.34,1.56,.64,1)}
+.res-score{font-family:'Fraunces',serif;font-size:4rem;font-weight:900;color:var(--ac);margin:16px 0 4px}
+.res-lab{font-size:1rem;color:var(--tx2);margin-bottom:28px}
+.res-msg{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:500;font-style:italic;margin-bottom:32px;line-height:1.4}
+
+.wsec{text-align:left;margin-bottom:28px}
+.wsec-t{font-size:.72rem;text-transform:uppercase;letter-spacing:2px;color:var(--tx2);margin-bottom:12px}
+.wcard{background:var(--sf);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;margin-bottom:10px}
+.wcard-w{font-family:'Fraunces',serif;font-weight:700;font-size:1.15rem;margin-bottom:3px;display:flex;align-items:center;gap:10px}
+.wcard-p{font-size:.72rem;color:var(--tx2);font-style:italic;margin-bottom:6px}
+.wcard-d{font-size:.85rem;color:var(--tx2);line-height:1.4}
+.mini-speak{background:none;border:1px solid rgba(86,200,224,.2);color:var(--ac3);border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:.7rem;transition:all .2s;flex-shrink:0}
+.mini-speak:hover{background:rgba(86,200,224,.12)}
+
+.done-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(78,205,196,.1);border:1px solid rgba(78,205,196,.2);color:var(--ok);padding:10px 20px;border-radius:100px;font-size:.85rem;font-weight:600;margin-bottom:16px}
+
+.welcome{text-align:center;z-index:1;position:relative}
+.hero{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:500;line-height:1.4;margin-bottom:24px}
+.hero em{font-style:italic;color:var(--ac)}
+.start-btn{display:inline-flex;align-items:center;gap:8px;padding:18px 40px;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;border-radius:100px;color:var(--bg);font-family:'DM Sans',sans-serif;font-size:1.05rem;font-weight:700;cursor:pointer;transition:all .3s}
+.start-btn:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(247,183,49,.3)}
+.how{margin-top:36px;text-align:left}
+.how-t{font-size:.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--tx2);margin-bottom:16px;text-align:center}
+.how-s{display:flex;align-items:flex-start;gap:14px;padding:12px 0}
+.how-n{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background:var(--sf2);font-family:'Fraunces',serif;font-weight:700;font-size:.85rem;color:var(--ac);flex-shrink:0}
+.how-tx{font-size:.88rem;color:var(--tx2);line-height:1.45;padding-top:5px}
+.how-tx b{color:var(--tx)}
+
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:100;overflow:hidden}
+.confetti-p{position:absolute;top:-20px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="glow"></div>
+<div class="hdr">
+  <div class="logo"><span class="logo-w">Word</span><span class="logo-s">Spark</span><span class="logo-b">&#x26A1;</span></div>
+  <div class="sub">Daily Vocabulary</div>
+</div>
+
+<div id="stats-bar" class="stats hidden">
+  <div class="st"><div class="sv sv-b" id="stat-streak">0</div><div class="sl">Day Streak</div></div>
+  <div class="st"><div class="sv sv-c" id="stat-total">0</div><div class="sl">Words Seen</div></div>
+  <div class="st"><div class="sv sv-a" id="stat-best">0</div><div class="sl">Best Streak</div></div>
+</div>
+
+<div id="screen-home"></div>
+<div id="screen-play" class="hidden"></div>
+<div id="screen-results" class="hidden"></div>
+<div id="screen-done" class="hidden"></div>
+<div id="confetti-container" class="confetti hidden"></div>
+</div>
+
+<script>
+/* ═══════════════ WORD DATABASE ═══════════════ */
+const WORDS=[
+{word:"ephemeral",def:"Lasting for a very short time",example:"The ephemeral beauty of cherry blossoms makes them all the more precious.",pos:"adjective",diff:2,ipa:"/ɪˈfɛm.ər.əl/",syn:["fleeting","transient","brief"],ant:["permanent","enduring","eternal"]},
+{word:"sonder",def:"The realization that each passerby has a life as vivid and complex as your own",example:"Walking through the busy terminal, he was struck by a deep sense of sonder.",pos:"noun",diff:3,ipa:"/ˈsɒn.dər/",syn:["awareness","empathy","realization"],ant:["obliviousness","apathy","indifference"]},
+{word:"petrichor",def:"The pleasant earthy smell after rain",example:"She opened the window to breathe in the petrichor after the storm.",pos:"noun",diff:3,ipa:"/ˈpɛt.ɹɪ.kɔːɹ/",syn:["earthiness","freshness"],ant:["stench","staleness"]},
+{word:"mellifluous",def:"Sweet-sounding; pleasant to hear",example:"The singer's mellifluous voice captivated the entire audience.",pos:"adjective",diff:3,ipa:"/mɛˈlɪf.lu.əs/",syn:["dulcet","melodious","harmonious"],ant:["harsh","grating","cacophonous"]},
+{word:"serendipity",def:"The occurrence of events by chance in a happy way",example:"Finding that rare book at the yard sale was pure serendipity.",pos:"noun",diff:2,ipa:"/ˌsɛr.ənˈdɪp.ɪ.ti/",syn:["luck","fortune","chance"],ant:["misfortune","design","planning"]},
+{word:"ineffable",def:"Too great or extreme to be expressed in words",example:"The view from the summit filled her with an ineffable sense of wonder.",pos:"adjective",diff:2,ipa:"/ɪnˈɛf.ə.bəl/",syn:["indescribable","unspeakable","inexpressible"],ant:["describable","expressible","definable"]},
+{word:"ubiquitous",def:"Present, appearing, or found everywhere",example:"Smartphones have become ubiquitous in modern society.",pos:"adjective",diff:2,ipa:"/juːˈbɪk.wɪ.təs/",syn:["omnipresent","pervasive","universal"],ant:["rare","scarce","uncommon"]},
+{word:"sanguine",def:"Optimistic or positive, especially in a difficult situation",example:"Despite the setbacks, she remained sanguine about the project's success.",pos:"adjective",diff:2,ipa:"/ˈsæŋ.ɡwɪn/",syn:["optimistic","hopeful","confident"],ant:["pessimistic","gloomy","despondent"]},
+{word:"luminous",def:"Full of or shedding light; bright or shining",example:"The luminous full moon cast silver shadows across the garden.",pos:"adjective",diff:1,ipa:"/ˈluː.mɪ.nəs/",syn:["radiant","brilliant","glowing"],ant:["dim","dark","dull"]},
+{word:"cacophony",def:"A harsh, discordant mixture of sounds",example:"The cacophony of car horns and construction made it impossible to think.",pos:"noun",diff:2,ipa:"/kəˈkɒf.ə.ni/",syn:["din","racket","discord"],ant:["harmony","melody","silence"]},
+{word:"equanimity",def:"Mental calmness and composure in a difficult situation",example:"She handled the crisis with remarkable equanimity.",pos:"noun",diff:3,ipa:"/ˌɛk.wəˈnɪm.ɪ.ti/",syn:["composure","poise","serenity"],ant:["agitation","anxiety","distress"]},
+{word:"resplendent",def:"Impressive through being richly colorful or sumptuous",example:"The bride looked resplendent in her hand-embroidered gown.",pos:"adjective",diff:3,ipa:"/rɪˈsplɛn.dənt/",syn:["dazzling","magnificent","splendid"],ant:["dull","plain","drab"]},
+{word:"quixotic",def:"Extremely idealistic; unrealistic and impractical",example:"His quixotic plan to reform the entire system overnight was charming but doomed.",pos:"adjective",diff:3,ipa:"/kwɪkˈsɒt.ɪk/",syn:["idealistic","romantic","impractical"],ant:["pragmatic","realistic","practical"]},
+{word:"perspicacious",def:"Having a ready insight into and understanding of things",example:"The perspicacious detective noticed the one detail everyone else had missed.",pos:"adjective",diff:3,ipa:"/ˌpɜː.spɪˈkeɪ.ʃəs/",syn:["astute","shrewd","perceptive"],ant:["obtuse","unaware","dense"]},
+{word:"laconic",def:"Using very few words; concise to the point of seeming rude",example:"His laconic reply of 'Fine' ended the conversation abruptly.",pos:"adjective",diff:2,ipa:"/ləˈkɒn.ɪk/",syn:["terse","succinct","brief"],ant:["verbose","wordy","loquacious"]},
+{word:"ebullient",def:"Cheerful and full of energy; enthusiastic",example:"Her ebullient personality lit up every room she entered.",pos:"adjective",diff:2,ipa:"/ɪˈbʌl.i.ənt/",syn:["exuberant","vivacious","buoyant"],ant:["subdued","lethargic","apathetic"]},
+{word:"sagacious",def:"Having keen mental discernment and good judgment",example:"The sagacious elder offered advice that proved invaluable.",pos:"adjective",diff:3,ipa:"/səˈɡeɪ.ʃəs/",syn:["wise","astute","judicious"],ant:["foolish","obtuse","unwise"]},
+{word:"sonorous",def:"Deep and full in sound; imposingly grand",example:"The sonorous bells echoed through the valley at dawn.",pos:"adjective",diff:2,ipa:"/ˈsɒn.ər.əs/",syn:["resonant","rich","deep"],ant:["thin","weak","faint"]},
+{word:"verdant",def:"Green with grass or other rich vegetation",example:"The verdant hills of Ireland stretched endlessly before them.",pos:"adjective",diff:2,ipa:"/ˈvɜː.dənt/",syn:["lush","green","fertile"],ant:["barren","arid","desolate"]},
+{word:"loquacious",def:"Tending to talk a great deal; talkative",example:"The loquacious taxi driver shared stories for the entire ride.",pos:"adjective",diff:2,ipa:"/ləˈkweɪ.ʃəs/",syn:["talkative","garrulous","chatty"],ant:["taciturn","quiet","reserved"]},
+{word:"pernicious",def:"Having a harmful effect, especially in a gradual or subtle way",example:"The pernicious influence of misinformation eroded public trust.",pos:"adjective",diff:2,ipa:"/pəˈnɪʃ.əs/",syn:["harmful","destructive","insidious"],ant:["harmless","beneficial","benign"]},
+{word:"verisimilitude",def:"The appearance of being true or real",example:"The novel's verisimilitude made readers forget it was fiction.",pos:"noun",diff:3,ipa:"/ˌvɛr.ɪ.sɪˈmɪl.ɪ.tjuːd/",syn:["realism","authenticity","plausibility"],ant:["implausibility","falseness","unreality"]},
+{word:"diaphanous",def:"Light, delicate, and translucent",example:"The diaphanous curtains danced in the summer breeze.",pos:"adjective",diff:3,ipa:"/daɪˈæf.ən.əs/",syn:["sheer","translucent","gossamer"],ant:["opaque","thick","heavy"]},
+{word:"insouciant",def:"Showing a casual lack of concern; indifferent",example:"She gave an insouciant shrug and walked away from the argument.",pos:"adjective",diff:3,ipa:"/ɪnˈsuː.si.ənt/",syn:["nonchalant","carefree","blithe"],ant:["anxious","worried","concerned"]},
+{word:"bucolic",def:"Relating to the pleasant aspects of the countryside",example:"They spent the weekend in a bucolic village surrounded by meadows.",pos:"adjective",diff:3,ipa:"/bjuːˈkɒl.ɪk/",syn:["pastoral","rural","rustic"],ant:["urban","metropolitan","industrial"]},
+{word:"mercurial",def:"Subject to sudden or unpredictable changes of mood",example:"His mercurial temperament made it difficult to plan around him.",pos:"adjective",diff:2,ipa:"/mɜːˈkjʊə.ri.əl/",syn:["volatile","capricious","fickle"],ant:["stable","steady","constant"]},
+{word:"obfuscate",def:"To make unclear or difficult to understand",example:"The politician tried to obfuscate the issue with technical jargon.",pos:"verb",diff:2,ipa:"/ˈɒb.fʌ.skeɪt/",syn:["confuse","obscure","muddle"],ant:["clarify","illuminate","explain"]},
+{word:"perfunctory",def:"Carried out with minimum effort or thought",example:"He gave a perfunctory nod and continued scrolling his phone.",pos:"adjective",diff:2,ipa:"/pəˈfʌŋ.tər.i/",syn:["cursory","halfhearted","mechanical"],ant:["thorough","diligent","careful"]},
+{word:"ameliorate",def:"To make something bad or unsatisfactory better",example:"The new policy was designed to ameliorate working conditions.",pos:"verb",diff:2,ipa:"/əˈmiː.li.ə.reɪt/",syn:["improve","enhance","alleviate"],ant:["worsen","aggravate","deteriorate"]},
+{word:"pulchritude",def:"Beauty; physical attractiveness",example:"The pulchritude of the sunset left everyone speechless.",pos:"noun",diff:3,ipa:"/ˈpʌl.krɪ.tjuːd/",syn:["beauty","loveliness","elegance"],ant:["ugliness","homeliness","plainness"]},
+{word:"recalcitrant",def:"Having an obstinately uncooperative attitude",example:"The recalcitrant student refused to follow any classroom rules.",pos:"adjective",diff:3,ipa:"/rɪˈkæl.sɪ.trənt/",syn:["defiant","unruly","stubborn"],ant:["compliant","obedient","cooperative"]},
+{word:"quintessential",def:"Representing the most perfect example of a quality",example:"Paris is the quintessential romantic city.",pos:"adjective",diff:2,ipa:"/ˌkwɪn.tɪˈsɛn.ʃəl/",syn:["archetypal","definitive","classic"],ant:["atypical","unrepresentative","anomalous"]},
+{word:"incandescent",def:"Emitting light as a result of being heated; brilliant",example:"Her incandescent smile could warm the coldest room.",pos:"adjective",diff:2,ipa:"/ˌɪn.kænˈdɛs.ənt/",syn:["brilliant","glowing","radiant"],ant:["dim","dark","faint"]},
+{word:"harbinger",def:"A person or thing that announces the approach of another",example:"The first robin is often seen as a harbinger of spring.",pos:"noun",diff:2,ipa:"/ˈhɑːr.bɪn.dʒər/",syn:["herald","precursor","forerunner"],ant:["follower","aftermath","consequence"]},
+{word:"gossamer",def:"A fine, filmy substance; something delicate or insubstantial",example:"The gossamer threads of the spider's web glistened with morning dew.",pos:"noun",diff:3,ipa:"/ˈɡɒs.ə.mər/",syn:["delicate","filmy","wispy"],ant:["heavy","coarse","thick"]},
+{word:"magnanimous",def:"Very generous or forgiving, especially toward a rival",example:"The magnanimous winner congratulated the opponent with genuine warmth.",pos:"adjective",diff:2,ipa:"/mæɡˈnæn.ɪ.məs/",syn:["generous","noble","charitable"],ant:["petty","selfish","vindictive"]},
+{word:"vitriolic",def:"Filled with bitter criticism or malice",example:"The vitriolic review devastated the young playwright.",pos:"adjective",diff:2,ipa:"/ˌvɪt.riˈɒl.ɪk/",syn:["caustic","scathing","venomous"],ant:["kind","gentle","praising"]},
+{word:"apocryphal",def:"Of doubtful authenticity, although widely circulated as true",example:"The apocryphal story about the company's founding has taken on a life of its own.",pos:"adjective",diff:3,ipa:"/əˈpɒk.rɪ.fəl/",syn:["dubious","unverified","spurious"],ant:["authentic","verified","genuine"]},
+{word:"halcyon",def:"Denoting a period of time that was idyllically happy and peaceful",example:"She often reminisced about the halcyon days of her childhood summers.",pos:"adjective",diff:3,ipa:"/ˈhæl.si.ən/",syn:["idyllic","peaceful","serene"],ant:["turbulent","chaotic","troubled"]},
+{word:"supercilious",def:"Behaving as though one thinks they are superior to others",example:"His supercilious attitude made him unpopular among colleagues.",pos:"adjective",diff:2,ipa:"/ˌsuː.pəˈsɪl.i.əs/",syn:["arrogant","haughty","condescending"],ant:["humble","modest","unassuming"]},
+{word:"surreptitious",def:"Kept secret, especially because it would not be approved of",example:"She cast a surreptitious glance at her phone during the meeting.",pos:"adjective",diff:2,ipa:"/ˌsʌr.əpˈtɪʃ.əs/",syn:["covert","stealthy","clandestine"],ant:["open","overt","obvious"]},
+{word:"panacea",def:"A solution or remedy for all difficulties or diseases",example:"There is no panacea for the complex challenges facing education.",pos:"noun",diff:2,ipa:"/ˌpæn.əˈsiː.ə/",syn:["cure-all","remedy","elixir"],ant:["poison","problem","disease"]},
+{word:"acumen",def:"The ability to make good judgments and quick decisions",example:"Her business acumen helped the startup survive its first year.",pos:"noun",diff:2,ipa:"/ˈæk.jʊ.mən/",syn:["insight","shrewdness","discernment"],ant:["ignorance","stupidity","obtuseness"]},
+{word:"languid",def:"Displaying or having a disinclination for physical exertion",example:"The languid afternoon heat made everyone drowsy and slow.",pos:"adjective",diff:2,ipa:"/ˈlæŋ.ɡwɪd/",syn:["listless","sluggish","lethargic"],ant:["energetic","vigorous","lively"]},
+{word:"audacious",def:"Showing a willingness to take surprisingly bold risks",example:"The audacious rescue plan seemed impossible but it worked.",pos:"adjective",diff:1,ipa:"/ɔːˈdeɪ.ʃəs/",syn:["bold","daring","fearless"],ant:["timid","cautious","meek"]},
+{word:"effervescent",def:"Vivacious and enthusiastic; giving off bubbles",example:"Her effervescent personality made her the life of every gathering.",pos:"adjective",diff:2,ipa:"/ˌɛf.ərˈvɛs.ənt/",syn:["bubbly","vivacious","sparkling"],ant:["flat","lifeless","subdued"]},
+{word:"plethora",def:"A large or excessive amount of something",example:"The buffet offered a plethora of dishes from around the world.",pos:"noun",diff:1,ipa:"/ˈplɛθ.ər.ə/",syn:["abundance","surplus","excess"],ant:["scarcity","lack","dearth"]},
+{word:"obsequious",def:"Excessively obedient or attentive to someone in power",example:"The obsequious assistant agreed with everything the boss said.",pos:"adjective",diff:3,ipa:"/əbˈsiː.kwi.əs/",syn:["servile","fawning","sycophantic"],ant:["assertive","independent","defiant"]},
+];
+
+/* ═══════════════ UTILITIES ═══════════════ */
+function seededRandom(seed){let s=seed;return()=>{s=(s*16807)%2147483647;return(s-1)/2147483646}}
+function getDaySeed(){const n=new Date();return n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate()}
+function getTodayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function shuffle(arr,rng){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function scrambleWord(w,rng){const l=w.split('');let s=shuffle(l,rng).join('');let t=0;while(s===w&&t<10){s=shuffle(l,rng).join('');t++}return s}
+
+function speak(word){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(word);
+  u.rate=0.85;u.pitch=1;u.lang="en-US";
+  const v=window.speechSynthesis.getVoices();
+  const e=v.find(x=>x.lang.startsWith("en")&&x.name.includes("Google"))||v.find(x=>x.lang.startsWith("en-US"))||v.find(x=>x.lang.startsWith("en"));
+  if(e)u.voice=e;
+  window.speechSynthesis.speak(u);
+}
+
+/* ═══════════════ SOUND EFFECTS (Web Audio API) ═══════════════ */
+let audioCtx=null;
+function getAudio(){
+  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function sfxClick(){
+  try{
+    const ctx=getAudio();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='sine';o.frequency.setValueAtTime(880,ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1200,ctx.currentTime+0.06);
+    g.gain.setValueAtTime(0.08,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.1);
+    o.start(ctx.currentTime);o.stop(ctx.currentTime+0.1);
+  }catch(e){}
+}
+
+function sfxCorrect(){
+  try{
+    const ctx=getAudio();
+    const t=ctx.currentTime;
+    // Three-note rising chime
+    [523.25, 659.25, 783.99].forEach((freq,i)=>{
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sine';
+      o.frequency.setValueAtTime(freq,t+i*0.1);
+      g.gain.setValueAtTime(0,t+i*0.1);
+      g.gain.linearRampToValueAtTime(0.15,t+i*0.1+0.04);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.35);
+      o.start(t+i*0.1);o.stop(t+i*0.1+0.4);
+    });
+    // Shimmer overtone
+    const o2=ctx.createOscillator();
+    const g2=ctx.createGain();
+    o2.connect(g2);g2.connect(ctx.destination);
+    o2.type='triangle';o2.frequency.setValueAtTime(1568,t+0.15);
+    g2.gain.setValueAtTime(0.04,t+0.15);
+    g2.gain.exponentialRampToValueAtTime(0.001,t+0.6);
+    o2.start(t+0.15);o2.stop(t+0.65);
+  }catch(e){}
+}
+
+function sfxWrong(){
+  try{
+    const ctx=getAudio();
+    const t=ctx.currentTime;
+    // Two descending tones
+    [330, 262].forEach((freq,i)=>{
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sine';
+      o.frequency.setValueAtTime(freq,t+i*0.15);
+      o.frequency.exponentialRampToValueAtTime(freq*0.85,t+i*0.15+0.25);
+      g.gain.setValueAtTime(0.12,t+i*0.15);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.15+0.3);
+      o.start(t+i*0.15);o.stop(t+i*0.15+0.35);
+    });
+  }catch(e){}
+}
+
+function sfxFanfare(){
+  try{
+    const ctx=getAudio();
+    const t=ctx.currentTime;
+    // Celebratory arpeggio: C5, E5, G5, C6
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq,i)=>{
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sine';
+      o.frequency.setValueAtTime(freq,t+i*0.12);
+      g.gain.setValueAtTime(0,t+i*0.12);
+      g.gain.linearRampToValueAtTime(0.13,t+i*0.12+0.04);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.12+0.5);
+      o.start(t+i*0.12);o.stop(t+i*0.12+0.55);
+      // Octave shimmer
+      const o2=ctx.createOscillator();
+      const g2=ctx.createGain();
+      o2.connect(g2);g2.connect(ctx.destination);
+      o2.type='triangle';
+      o2.frequency.setValueAtTime(freq*2,t+i*0.12+0.05);
+      g2.gain.setValueAtTime(0.03,t+i*0.12+0.05);
+      g2.gain.exponentialRampToValueAtTime(0.001,t+i*0.12+0.45);
+      o2.start(t+i*0.12+0.05);o2.stop(t+i*0.12+0.5);
+    });
+    // Final sustained chord
+    [523.25, 659.25, 783.99, 1046.5].forEach(freq=>{
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sine';
+      o.frequency.setValueAtTime(freq,t+0.55);
+      g.gain.setValueAtTime(0.06,t+0.55);
+      g.gain.exponentialRampToValueAtTime(0.001,t+1.8);
+      o.start(t+0.55);o.stop(t+1.85);
+    });
+  }catch(e){}
+}
+
+function sfxNextStep(){
+  try{
+    const ctx=getAudio();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='sine';
+    o.frequency.setValueAtTime(600,ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(900,ctx.currentTime+0.08);
+    g.gain.setValueAtTime(0.06,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.12);
+    o.start(ctx.currentTime);o.stop(ctx.currentTime+0.15);
+  }catch(e){}
+}
+
+/* ═══════════════ GAME GEN ═══════════════ */
+function generateGame(seed){
+  const rng=seededRandom(seed);
+  const today=shuffle(WORDS,rng).slice(0,5);
+  const steps=[];
+
+  today.forEach((w,idx)=>{
+    steps.push({phase:"learn",word:w,idx});
+    const wrong=shuffle(WORDS.filter(x=>x.word!==w.word),rng).slice(0,3).map(x=>x.def);
+    const opts=shuffle([w.def,...wrong],rng);
+    steps.push({phase:"quiz",mode:"def_match",word:w,idx,options:opts,answer:opts.indexOf(w.def)});
+  });
+
+  // Scramble
+  const sw=today[0];
+  steps.push({phase:"apply",mode:"scramble",word:sw,scrambled:scrambleWord(sw.word,rng).toUpperCase()});
+
+  // Synonym
+  const synW=today[1];
+  const cSyn=synW.syn[Math.floor(rng()*synW.syn.length)];
+  const wSyns=shuffle(WORDS.filter(x=>x.word!==synW.word),rng).slice(0,3).map(x=>(x.ant&&x.ant[0])||x.word);
+  const synOpts=shuffle([cSyn,...wSyns],rng);
+  steps.push({phase:"apply",mode:"synonym",word:synW,options:synOpts,answer:synOpts.indexOf(cSyn)});
+
+  // Fill blank
+  const fw=today[2];
+  const fwO=shuffle([fw,...shuffle(WORDS.filter(x=>x.word!==fw.word),rng).slice(0,3)],rng);
+  steps.push({phase:"apply",mode:"fill_blank",word:fw,blank:fw.example.replace(new RegExp(fw.word,'gi'),'______'),options:fwO.map(o=>o.word),answer:fwO.findIndex(o=>o.word===fw.word)});
+
+  // Antonym
+  const antW=today[3];
+  const cAnt=antW.ant[Math.floor(rng()*antW.ant.length)];
+  const wAnts=shuffle(WORDS.filter(x=>x.word!==antW.word),rng).slice(0,3).map(x=>(x.syn&&x.syn[0])||x.word);
+  const antOpts=shuffle([cAnt,...wAnts],rng);
+  steps.push({phase:"apply",mode:"antonym",word:antW,options:antOpts,answer:antOpts.indexOf(cAnt)});
+
+  // Reverse
+  const rw=today[4];
+  const rwO=shuffle([rw,...shuffle(WORDS.filter(x=>x.word!==rw.word),rng).slice(0,3)],rng);
+  steps.push({phase:"apply",mode:"reverse",word:rw,options:rwO.map(o=>o.word),answer:rwO.findIndex(o=>o.word===rw.word)});
+
+  return{words:today,steps};
+}
+
+/* ═══════════════ STATE ═══════════════ */
+let stats={streak:0,total:0,best:0,last:null,completed:false,lastScore:0};
+let game=null, stepIdx=0, score=0, picked=null, revealed=false;
+const LETTERS=['A','B','C','D'];
+
+function loadStats(){
+  try{
+    // Try artifact storage first
+    if(window.storage){
+      window.storage.get("wordspark_stats").then(r=>{
+        if(r&&r.value){
+          stats=JSON.parse(r.value);
+          const today=getTodayStr();
+          if(stats.last&&stats.last!==today&&(new Date(today)-new Date(stats.last))/864e5>1.5)stats.streak=0;
+          if(stats.last===today&&stats.completed)showScreen("done");
+          updateStats();
+        }
+      }).catch(()=>loadFromLocal());
+    } else { loadFromLocal(); }
+  } catch(e){ loadFromLocal(); }
+}
+function loadFromLocal(){
+  try{
+    const s=localStorage.getItem("wordspark_stats");
+    if(s){
+      stats=JSON.parse(s);
+      const today=getTodayStr();
+      if(stats.last&&stats.last!==today&&(new Date(today)-new Date(stats.last))/864e5>1.5)stats.streak=0;
+      if(stats.last===today&&stats.completed)showScreen("done");
+      updateStats();
+    }
+  }catch(e){}
+}
+function saveStats(){
+  try{
+    if(window.storage) window.storage.set("wordspark_stats",JSON.stringify(stats)).catch(()=>{});
+  }catch(e){}
+  try{ localStorage.setItem("wordspark_stats",JSON.stringify(stats)); }catch(e){}
+}
+
+function updateStats(){
+  document.getElementById("stat-streak").textContent=stats.streak;
+  document.getElementById("stat-total").textContent=stats.total;
+  document.getElementById("stat-best").textContent=stats.best;
+}
+
+/* ═══════════════ RENDERING ═══════════════ */
+function showScreen(name){
+  ["home","play","results","done"].forEach(s=>{
+    document.getElementById("screen-"+s).classList.toggle("hidden",s!==name);
+  });
+  document.getElementById("stats-bar").classList.toggle("hidden",name==="home");
+  updateStats();
+  if(name==="home") renderHome();
+  if(name==="play") renderStep();
+  if(name==="results") renderResults();
+  if(name==="done") renderDone();
+}
+
+function renderHome(){
+  document.getElementById("screen-home").innerHTML=`
+    <div class="welcome">
+      <div class="hero">Learn five words. Get quizzed.<br>Build a <em>brighter</em> vocabulary.</div>
+      <button class="start-btn" onclick="startGame()">&#x26A1; Start Today\u2019s Spark</button>
+      <div class="how">
+        <div class="how-t">How It Works</div>
+        <div class="how-s"><div class="how-n">1</div><div class="how-tx"><b>Learn each word</b> \u2014 see the definition, hear the pronunciation, read an example</div></div>
+        <div class="how-s"><div class="how-n">2</div><div class="how-tx"><b>Quick quiz</b> \u2014 pick the correct definition while it\u2019s fresh</div></div>
+        <div class="how-s"><div class="how-n">3</div><div class="how-tx"><b>Challenge round</b> \u2014 scrambles, synonyms, antonyms, fill-in-the-blank & reverse</div></div>
+        <div class="how-s"><div class="how-n">4</div><div class="how-tx"><b>Build your streak</b> \u2014 play daily for lasting retention</div></div>
+      </div>
+    </div>`;
+}
+
+function startGame(){
+  sfxNextStep();
+  game=generateGame(getDaySeed());
+  stepIdx=0;score=0;picked=null;revealed=false;
+  showScreen("play");
+}
+
+function phaseLabel(){
+  const s=game.steps[stepIdx];
+  if(s.phase==="learn")return `Learn \u2014 Word ${s.idx+1}/5`;
+  if(s.phase==="quiz")return `Quiz \u2014 Word ${s.idx+1}/5`;
+  return "Apply \u2014 Challenge Round";
+}
+
+function badgeHTML(){
+  const s=game.steps[stepIdx];
+  const cls=s.phase==="learn"?"badge-learn":s.phase==="quiz"?"badge-quiz":"badge-apply";
+  let label="";
+  if(s.phase==="learn")label="\u2728 New Word";
+  else if(s.phase==="quiz")label="\uD83E\uDDE0 Quick Quiz";
+  else if(s.mode==="scramble")label="\uD83D\uDD00 Word Scramble";
+  else if(s.mode==="synonym")label="\uD83E\uDD1D Synonym Match";
+  else if(s.mode==="antonym")label="\u26A1 Opposite Attract";
+  else if(s.mode==="fill_blank")label="\u270F\uFE0F Fill the Blank";
+  else if(s.mode==="reverse")label="\uD83D\uDD04 Name That Word";
+  return `<div class="badge ${cls}">${label}</div>`;
+}
+
+function highlightWord(example,word){
+  return example.replace(new RegExp(`(${word})`,'gi'),'<b>$1</b>');
+}
+
+function optionsHTML(opts,answer){
+  return `<div class="opts">${opts.map((o,i)=>`<button class="opt" onclick="handlePick(${i})" data-i="${i}"><span class="let">${LETTERS[i]}</span><span>${o}</span></button>`).join('')}</div>`;
+}
+
+function renderStep(){
+  const s=game.steps[stepIdx];
+  const total=game.steps.length;
+  const pct=((stepIdx+1)/total)*100;
+
+  let html=`<div class="prog"><div class="prog-top"><span>${phaseLabel()}</span><span>${score} correct</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
+
+  html+=`<div class="card" id="game-card">${badgeHTML()}`;
+
+  if(s.phase==="learn"){
+    html+=`<div class="big-word">${s.word.word}</div>
+      <div class="pos-tag">${s.word.pos}</div>
+      <div class="ipa"><span>${s.word.ipa}</span><button class="speak-btn" onclick="speak('${s.word.word}')">\uD83D\uDD0A</button></div>
+      <div class="def-box">${s.word.def}</div>
+      <div class="ex">${highlightWord(s.word.example,s.word.word)}</div>
+      <button class="gotit" onclick="sfxNextStep();nextStep()">Got it \u2014 quiz me \u2192</button>`;
+  }
+  else if(s.mode==="def_match"){
+    html+=`<div class="big-word">${s.word.word}</div>
+      <div class="pos-tag">${s.word.pos}</div>
+      <div class="ipa"><span>${s.word.ipa}</span><button class="speak-btn" onclick="speak('${s.word.word}')">\uD83D\uDD0A</button></div>
+      <div class="prompt">What does this word mean?</div>
+      ${optionsHTML(s.options,s.answer)}`;
+  }
+  else if(s.mode==="scramble"){
+    html+=`<div class="scramble-hint">Unscramble these letters to form one of today\u2019s words:</div>
+      <div class="scramble-letters">${s.scrambled}</div>
+      <div class="scramble-hint" style="font-size:.8rem;margin-bottom:12px">Hint: <em>${s.word.def}</em></div>
+      <div class="scramble-row">
+        <input class="scramble-input" id="scramble-in" placeholder="Type your answer..." onkeydown="if(event.key==='Enter')checkScramble()">
+        <button class="scramble-submit" id="scramble-btn" onclick="checkScramble()">Check</button>
+      </div>
+      <div id="scramble-fb"></div>`;
+  }
+  else if(s.mode==="synonym"){
+    html+=`<div class="big-word">${s.word.word}</div>
+      <div class="pos-tag">${s.word.pos}</div>
+      <div class="prompt">Which word is closest in meaning?</div>
+      ${optionsHTML(s.options,s.answer)}`;
+  }
+  else if(s.mode==="antonym"){
+    html+=`<div class="big-word">${s.word.word}</div>
+      <div class="pos-tag">${s.word.pos}</div>
+      <div class="prompt">Which word means the OPPOSITE?</div>
+      ${optionsHTML(s.options,s.answer)}`;
+  }
+  else if(s.mode==="fill_blank"){
+    const blankHTML=s.blank.replace(/______/g,'<span class="blank">______</span>');
+    html+=`<div class="prompt">${blankHTML}</div>
+      ${optionsHTML(s.options,s.answer)}`;
+  }
+  else if(s.mode==="reverse"){
+    html+=`<div class="prompt" style="font-style:italic">\u201C${s.word.def}\u201D</div>
+      <div class="pos-tag" style="margin-bottom:16px">Which word matches this definition?</div>
+      ${optionsHTML(s.options,s.answer)}`;
+  }
+
+  html+=`</div>`;
+  document.getElementById("screen-play").innerHTML=html;
+  picked=null;revealed=false;
+
+  if(s.mode==="scramble"){
+    setTimeout(()=>{const inp=document.getElementById("scramble-in");if(inp)inp.focus()},100);
+  }
+}
+
+function handlePick(i){
+  if(revealed)return;
+  sfxClick();
+  picked=i;revealed=true;
+  const s=game.steps[stepIdx];
+  const isCorrect=i===s.answer;
+  if(isCorrect){score++;setTimeout(sfxCorrect,150);}
+  else{setTimeout(sfxWrong,150);}
+
+  // Update option styles
+  document.querySelectorAll('.opt').forEach((el,idx)=>{
+    el.classList.add('locked');
+    if(idx===s.answer)el.classList.add('correct');
+    else if(idx===i)el.classList.add('wrong');
+    else el.classList.add('dim');
+  });
+
+  // Add feedback
+  const correctLabel=s.mode==="def_match"?s.word.def:
+    (s.mode==="fill_blank"||s.mode==="reverse")?s.word.word:
+    s.options[s.answer];
+  const card=document.getElementById("game-card");
+  const fbClass=isCorrect?"fb-ok":"fb-bad";
+  const fbText=isCorrect?"\u2713 Nailed it!":`\u2717 The answer was: <strong>${correctLabel}</strong>`;
+  const btnLabel=stepIdx+1>=game.steps.length?"See Results \u2192":"Next \u2192";
+  card.innerHTML+=`<div class="fb ${fbClass}">${fbText}</div><button class="next-btn" onclick="nextStep()">${btnLabel}</button>`;
+}
+
+function checkScramble(){
+  const inp=document.getElementById("scramble-in");
+  const btn=document.getElementById("scramble-btn");
+  if(!inp||inp.disabled)return;
+  sfxClick();
+  const s=game.steps[stepIdx];
+  const correct=inp.value.trim().toLowerCase()===s.word.word.toLowerCase();
+  inp.disabled=true;
+  if(btn)btn.style.display="none";
+  inp.classList.add(correct?"si-ok":"si-bad");
+  if(correct){score++;setTimeout(sfxCorrect,150);}
+  else{setTimeout(sfxWrong,150);}
+  revealed=true;
+
+  const fbClass=correct?"fb-ok":"fb-bad";
+  const fbText=correct?"\u2713 Nailed it!":`\u2717 The answer was: <strong>${s.word.word}</strong>`;
+  const btnLabel=stepIdx+1>=game.steps.length?"See Results \u2192":"Next \u2192";
+  document.getElementById("scramble-fb").innerHTML=`<div class="fb ${fbClass}">${fbText}</div><button class="next-btn" onclick="nextStep()">${btnLabel}</button>`;
+}
+
+function nextStep(){
+  if(stepIdx+1>=game.steps.length){
+    const today=getTodayStr();
+    const ns=stats.last===today?stats.streak:stats.streak+1;
+    stats={streak:ns,total:stats.total+game.words.length,best:Math.max(stats.best,ns),last:today,completed:true,lastScore:score};
+    saveStats();
+    sfxFanfare();
+    showConfetti();
+    showScreen("results");
+  } else {
+    sfxNextStep();
+    stepIdx++;
+    renderStep();
+  }
+}
+
+function showConfetti(){
+  const c=document.getElementById("confetti-container");
+  c.classList.remove("hidden");
+  const colors=['#f7b731','#e056a0','#56c8e0','#4ecdc4','#ff6b6b','#ffd93d'];
+  let h='';
+  for(let i=0;i<45;i++){
+    const left=Math.random()*100;
+    const size=6+Math.random()*8;
+    const dur=2+Math.random()*2;
+    const delay=Math.random()*1.5;
+    const br=Math.random()>.5?'50%':'2px';
+    const col=colors[i%6];
+    h+=`<div class="confetti-p" style="left:${left}%;width:${size}px;height:${size}px;border-radius:${br};background:${col};animation:fall ${dur}s ${delay}s linear forwards"></div>`;
+  }
+  c.innerHTML=h;
+  setTimeout(()=>{c.classList.add("hidden");c.innerHTML=''},4000);
+}
+
+function renderResults(){
+  const quizCount=game.steps.filter(s=>s.phase!=="learn").length;
+  const p=score/quizCount;
+  const msg=p===1?"Flawless. Lexicon legend.":p>=.75?"Impressive vocabulary prowess!":p>=.5?"Solid work \u2014 keep building!":"Every word learned is a spark lit.";
+
+  let cards='';
+  game.words.forEach(w=>{
+    cards+=`<div class="wcard">
+      <div class="wcard-w">${w.word}<button class="mini-speak" onclick="speak('${w.word}')">\uD83D\uDD0A</button></div>
+      <div class="wcard-p">${w.pos} \u00B7 ${w.ipa}</div>
+      <div class="wcard-d">${w.def}</div>
+    </div>`;
+  });
+
+  document.getElementById("screen-results").innerHTML=`
+    <div class="res">
+      <div class="res-score">${score}/${quizCount}</div>
+      <div class="res-lab">correct answers</div>
+      <div class="res-msg">${msg}</div>
+      <div class="wsec">
+        <div class="wsec-t">Today\u2019s Words</div>
+        ${cards}
+      </div>
+      <div class="done-badge">\u2713 Come back tomorrow for new words!</div>
+    </div>`;
+}
+
+function renderDone(){
+  const quizCount=10;
+  document.getElementById("screen-done").innerHTML=`
+    <div class="res">
+      <div class="done-badge">\u2713 Today\u2019s Spark Complete</div>
+      <div class="res-msg" style="margin-top:20px">You\u2019ve already sparked today.<br>New words arrive at midnight.</div>
+      <div style="margin-top:16px;color:var(--tx2);font-size:.85rem">Score: ${stats.lastScore}/${quizCount}</div>
+      <button class="start-btn" style="margin-top:28px" onclick="startGame()">Practice Again</button>
+    </div>`;
+}
+
+/* ═══════════════ INIT ═══════════════ */
+if(window.speechSynthesis){
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+}
+loadStats();
+showScreen("home");
+</script>
+</body>
+</html>
